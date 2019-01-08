@@ -63,7 +63,14 @@ def haar_face_detection(imgsPath, xmlPath, scaling, size):
         for (x, y, w, h) in faces:
             cv2.rectangle(image, (x,y), (x+w,y+h), (0,255,0), 2)
 
-        cv2.imshow('Faces found', image)
+            # apply gaussian blur on faces
+            face = image[y:y+h, x:x+w]
+            face = cv2.GaussianBlur(face, (23, 23), 30)
+
+            # put blurred face on new image
+            image[y:y+face.shape[0], x:x+face.shape[1]] = face
+
+        #cv2.imshow('Faces found', image)
 
         # strip file extension of original image so we can write similar output image
         # i.e.) people.png --> people_output.png
@@ -166,12 +173,16 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
         for ind in indices:
             ind = ind[0]
             box = boxes[ind]
-            x = box[0]
-            y = box[1]
-            w = box[2]
-            h = box[3]
+            x = max(0, round(box[0]))
+            y = max(0, round(box[1]))
+            w = max(0, round(box[2]))
+            h = max(0, round(box[3]))
 
-            draw_bounding_box(image, classes, class_ids[ind], confidences[ind], colors_list, round(x), round(y), w, h)
+            # draw the bounding box
+            #draw_bounding_box(image, classes, class_ids[ind], colors_list, x, y, w, h)
+
+            # draw the blurred bounding box
+            blur_detected_object(image, x, y, w, h)
 
         # strip file extension of original image so we can write similar output image
         # i.e.) people.png --> people_output.png
@@ -179,6 +190,7 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
         cv2.imwrite(os.path.join(os.getcwd(), 'out_images_yolo', (image_file + '_output.png')), image)
         cv2.destroyAllWindows()
     
+        print('Image {} was completed!'.format(counter))
         counter += 1
 
     print('Processed all {} images! :D'.format(counter))
@@ -199,19 +211,17 @@ def get_output_layers(net):
     return output_layers
 
 
-def draw_bounding_box(image, classes, class_id, confidence, colors_list, x, y, w, h):
+def draw_bounding_box(image, classes, class_id, colors_list, x, y, w, h):
     """
-    Draw bounding boxes in image based off object
+    Draw bounding boxes in image based off object detected and apply a blur to the inside of the box
 
     :param  image:      read in image using opencv
-    :param  image_file: original image with file extension
     :param  classes:    list of classes
     :param  class_id:   specific class id
-    :param  confidence: model confidence based off class
     :param  colors:     colors used for bounding box
     :param  x, y, w, h: dimensions of image
 
-    :return (the bounding box on the image and saving the image to output directory)
+    :return (the class label and colored bounding box on the image)
 
     """
 
@@ -220,9 +230,29 @@ def draw_bounding_box(image, classes, class_id, confidence, colors_list, x, y, w
     color = colors_list[class_id]
     
     # draw bounding box with text over it
-    cv2.rectangle(image, (x,y), (round(x+w),round(y+h)), color, 2)
+    cv2.rectangle(image, (x,y), ((x+w), (y+h)), color, 2)
     cv2.putText(image, label, (x-10, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
+
+def blur_detected_object(image, x, y, w, h):
+    """
+    Apply a blur to the detected objects in the image
+
+    :param  image:      read in image using opencv
+    :param  x, y, w, h: dimensions of image
+
+    :return (the blurred bounding box on the image)
+
+    """
+    # apply gaussian blur on faces
+    face = image[y:y+h, x:x+w]
+    face = cv2.GaussianBlur(face, (23, 23), 30)
+
+    # put blurred face on new image
+    face_y = face.shape[0]
+    face_x = face.shape[1]
+
+    image[y:y+face_y, x:x+face_x] = face
 
 """
 ##############################################################################
