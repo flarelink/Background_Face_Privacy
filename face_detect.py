@@ -16,12 +16,12 @@ import os
 
 """
 ##############################################################################
-# Face detection
+# Haar Face detection
 ##############################################################################
 """
-def face_detection(imgsPath, xmlPath, scaling, size):
+def haar_face_detection(imgsPath, xmlPath, scaling, size):
     """
-    Detects faces in images and draws a bounding box around the faces
+    Detects faces in images and draws a bounding box around the faces using haar cascading method
 
     :param imgsPath: Path to the input images directory
     :param xmlPath : Path to the xml file for detecting the front of people's faces
@@ -42,15 +42,15 @@ def face_detection(imgsPath, xmlPath, scaling, size):
         image_path = os.path.join(imgsPath, image_file)
 
         # read input image
-        img = cv2.imread(image_path)
-        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        image = cv2.imread(image_path)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # face and eye detection classifiers using haar features
         face_classifier = cv2.CascadeClassifier(xmlPath)
 
         # detect faces
         faces = face_classifier.detectMultiScale(
-                gray_img,
+                gray_image,
                 scaleFactor = scaling,
                 minNeighbors = 10,
                 minSize = (size, size),
@@ -61,14 +61,14 @@ def face_detection(imgsPath, xmlPath, scaling, size):
 
         # draw rectangles around faces
         for (x, y, w, h) in faces:
-            cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
+            cv2.rectangle(image, (x,y), (x+w,y+h), (0,255,0), 2)
 
-        cv2.imshow('Faces found', img)
+        cv2.imshow('Faces found', image)
 
         # strip file extension of original image so we can write similar output image
         # i.e.) people.png --> people_output.png
         image_file = os.path.splitext(image_file)[0]
-        cv2.imwrite(os.path.join(os.getcwd(), 'out_images', (image_file + '_output.png')), img)
+        cv2.imwrite(os.path.join(os.getcwd(), 'out_images_haar', (image_file + '_output.png')), image)
         #cv2.waitKey(0)
         cv2.destroyAllWindows()
         
@@ -76,6 +76,152 @@ def face_detection(imgsPath, xmlPath, scaling, size):
 
     print('Processed all {} images! :D'.format(counter))
 
+
+"""
+##############################################################################
+# YOLOv3 Face detection
+##############################################################################
+"""
+def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
+    """
+    Detects faces in images and draws a bounding box around the faces using yolo method
+
+    :param imgsPath:    Path to the input images directory
+    :param yolo_path:   Path to the yolo algorithm's config file
+    :param weights_file:Pre-trained face weights for yolo algorithm 
+    :param classes_file:Classes text file for yolo algorithm 
+
+    :returns:
+
+    (Doesn't return anything except outputted images to the directory 'output_images')
+    """
+    # keep track of how many images processed on
+    counter = 0
+
+    for image_file in (os.listdir(imgsPath)):
+        
+        # image path
+        image_path = os.path.join(imgsPath, image_file)
+
+        # read input image
+        image = cv2.imread(image_path)
+
+        # get width and height
+        height = image.shape[0]
+        width  = image.shape[1]
+        scale = 0.00392
+
+        # get class names
+        with open(classes_file, 'r') as f:
+            classes = [line.strip() for line in f.readlines()]
+
+        # generate different color bounding boxes for different classes
+        #colors_list = np.random.uniform(0, 255, size=(len(classes), 3))
+
+        # temporarily commenting out colors_list above since we just have 1 class which is a face
+        colors_list = [(0, 255, 0)]
+
+        # read pre-trained model and config file to create network
+        net = cv2.dnn.readNet(weights_file, yolo_path)
+
+        # Prepare image to run through network
+        # create input blob
+        blob = cv2.dnn.blobFromImage(image, scale, (416, 416), (0, 0, 0), True, crop=False)
+
+        # set input blob for the network
+        net.setInput(blob)
+
+        # run inference
+        outs = net.forward(get_output_layers(net))
+
+        # initializations for detection
+        class_ids = []
+        confidences = []
+        boxes = []
+        conf_threshold = 0.35 #0.5
+        nms_threshold = 0.4
+
+        # get confidences, bounding box params, class_ids for each detection
+        # ignore weak detections (under 0.5 confidence)
+        for out in outs:
+            for detection in out:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+                if(confidence > 0.35):#0.5):
+                    center_x = int(detection[0] * width)
+                    center_y = int(detection[1] * height)
+                    w = int(detection[2] * width)
+                    h = int(detection[3] * height)
+                    x = center_x - w/2
+                    y = center_y - h/2
+                    class_ids.append(class_id)
+                    confidences.append(float(confidence))
+                    boxes.append([x, y, w, h])
+
+        # apply non-max suppresion
+        indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
+
+        # detections after nms
+        for ind in indices:
+            ind = ind[0]
+            box = boxes[ind]
+            x = box[0]
+            y = box[1]
+            w = box[2]
+            h = box[3]
+
+            draw_bounding_box(image, classes, class_ids[ind], confidences[ind], colors_list, round(x), round(y), w, h)
+
+        # strip file extension of original image so we can write similar output image
+        # i.e.) people.png --> people_output.png
+        image_file = os.path.splitext(image_file)[0]
+        cv2.imwrite(os.path.join(os.getcwd(), 'out_images_yolo', (image_file + '_output.png')), image)
+        cv2.destroyAllWindows()
+    
+        counter += 1
+
+    print('Processed all {} images! :D'.format(counter))
+
+
+def get_output_layers(net):
+    """
+    Obtain output layer names in the architecture
+
+    :param   net: yolo network
+
+    :return  output_layers: output layers used in the net
+    """
+
+    layer_names = net.getLayerNames()
+    output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
+    return output_layers
+
+
+def draw_bounding_box(image, classes, class_id, confidence, colors_list, x, y, w, h):
+    """
+    Draw bounding boxes in image based off object
+
+    :param  image:      read in image using opencv
+    :param  image_file: original image with file extension
+    :param  classes:    list of classes
+    :param  class_id:   specific class id
+    :param  confidence: model confidence based off class
+    :param  colors:     colors used for bounding box
+    :param  x, y, w, h: dimensions of image
+
+    :return (the bounding box on the image and saving the image to output directory)
+
+    """
+
+    # get label and color for class
+    label = str(classes[class_id])
+    color = colors_list[class_id]
+    
+    # draw bounding box with text over it
+    cv2.rectangle(image, (x,y), (round(x+w),round(y+h)), color, 2)
+    cv2.putText(image, label, (x-10, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
 """
@@ -92,24 +238,42 @@ def create_parser():
     parser = argparse.ArgumentParser(
         description='Background_Face_Privacy arguments.')
 
-    # arguments for content and style image locations
-    parser.add_argument('--username', type=str, default='test',
+    # function to allow parsing of true/false boolean
+    def str2bool(v):
+        if v.lower() in ('yes', 'true', 't', 'y', '1'):
+            return True
+        elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
+
+    # determine if user wants to use haar classifier or yolo classifier
+    parser.add_argument('-d', '--detect', type=int, default=0,
+            help='Specifies if using haar detection or yolo detection, Options: 0=Haar, 1=YOLO; default=0')
+
+    # arguments to locate XML file and image directory
+    parser.add_argument('-u', '--username', type=str, default='test',
             help='This is the username to help locate your frontal face xml file in opencv for face detection. Usage leads to obtaining the path, for example mine is: /home/flarelink/opencv/data/haarcascades/haarcascade_frontalface_default.xml where flarelink is me the user. Alternatively you can just download the xml in the repository but this way will help you locate any others like if you wanted to do eye detection :) ; default=test')
-
-    parser.add_argument('--xml_file', type=str, default='haarcascade_frontalface_default.xml',
+    parser.add_argument('-x', '--xml_file', type=str, default='haarcascade_frontalface_default.xml',
             help='Uses xml file specified; default=haarcascade_frontalface_default.xml')
-
     #parser.add_argument('--img_path', type=str, default='test.jpeg',
             #help='Uses path of image; default=test.jpeg')
-
-    parser.add_argument('--img_dir_path', type=str, default='images',
+    parser.add_argument('-i', '--img_dir_path', type=str, default='images',
             help='Uses the provided directory name as the target directory where all input images are; default=images')
     
+    # arguments for haar cascade face detection parameters
     parser.add_argument('--scaling', type=float, default=1.1,
             help='Defines scaling that compensates for larger/smaller faces (similar to a tolerance); default=1.1')
-    
     parser.add_argument('--size', type=int, default=10,
             help='Defines minimum sizes of faces; default=10')
+
+    # arguments for yolo face detection parameters
+    parser.add_argument('-y', '--yolo_path', type=str, default='yolov3-face.cfg',
+            help='Uses the provided path to the yolo config file; default=yolov3-face.cfg')
+    parser.add_argument('-w', '--weights', type=str, default='yolov3-wider_16000.weights',
+            help='Uses the provided path to the weights file for yolo; default=yolov3-wider_16000.weights')
+    parser.add_argument('-c', '--classes', type=str, default='yolov3_classes.txt',
+            help='Uses the provided path to the classes text file for yolo; default=yolov3_classes.txt')
 
     args = parser.parse_args()
 
@@ -142,13 +306,21 @@ def main():
     imgsPath = os.path.join(os.getcwd(), args.img_dir_path)
     #print(imgsPath)
 
-    # create output images directory if it doesn't exist
-    if(os.path.exists(os.path.join(os.getcwd(), 'out_images')) == False):
-        os.mkdir('out_images')
+    # check which detection method we're using and creat folder for it if it doesn't exist already
+    # then run face detection
+    # Haar cascade detection
+    if(args.detect == 0):
+        if(os.path.exists(os.path.join(os.getcwd(), 'out_images_haar')) == False):
+            os.mkdir('out_images_haar')
+        haar_face_detection(imgsPath, xmlPath, args.scaling, args.size)
 
-    # run face detection
-    face_detection(imgsPath, xmlPath, args.scaling, args.size)
-    
+    # YOLO detection
+    elif(args.detect == 1):
+        if(os.path.exists(os.path.join(os.getcwd(), 'out_images_yolo')) == False):
+            os.mkdir('out_images_yolo')
+        yolo_face_detection(imgsPath, args.yolo_path, args.weights, args.classes)
+    else:
+        return IOError("Invalid input, please enter a valid input. Check the program's help command for additional details. (face_detect.py -h)") 
 
 if __name__== '__main__':
     main()

@@ -1,0 +1,45 @@
+# references
+
+# originally was going to use this as a reference to make the project but I decided to go in a slightly different direction
+https://web.stanford.edu/class/cs231m/projects/final-report-cao-liu.pdf
+
+
+
+# great reference for opencv haar cascade face detection
+https://realpython.com/face-recognition-with-python/
+
+
+
+# reference to yolov3's paper
+https://pjreddie.com/media/files/papers/YOLOv3.pdf
+Redmon, J., & Farhadi, A. (2018). Yolov3: An incremental improvement. arXiv preprint arXiv:1804.02767.
+
+
+As I used a fair amount of code from other repositories for the yolo sections here are credations :)
+
+# great reference for yolo object detection and helped me make the yolo detection portion of the code (check out the comments if you have any trouble)
+https://www.arunponnusamy.com/yolo-object-detection-opencv-python.html
+
+Project: object-detection-opencv
+	 https://github.com/arunponnusamy/object-detection-opencv
+License: https://github.com/sthanhng/yoloface/blob/master/LICENSE
+
+
+
+# repository where I got the weights to be used in yolo for the faces along with the config file
+https://github.com/sthanhng/yoloface
+
+Project: yoloface
+  	 https://github.com/sthanhng/yoloface
+License: https://github.com/sthanhng/yoloface/blob/master/LICENSE
+
+*********************************************************************************
+***** For my project, get the following files from the yoloface repository: *****
+*********************************************************************************
+
+Face weights for yolov3:
+
+yolov3-wider_16000.weights   (this can be found in the README, look under the Usage section)
+
+Then get the config file from:
+https://github.com/sthanhng/yoloface/blob/master/cfg/yolov3-face.cfg
