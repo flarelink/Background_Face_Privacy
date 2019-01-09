@@ -19,15 +19,15 @@ python3 face_detect.py -h
 Requirements:
 --------------
 
-Python 3.X
-OpenCV
-NumPY
+- Python 3.X
+- OpenCV
+- NumPY
 
 I'm using the following:
-Python 3.7.1
-OpenCV 3.4.5
-NumPY  1.15.4
-Ubuntu 18.04LTS (I have not tested this program on Windows or Mac)
+- Python 3.7.1
+- OpenCV 3.4.5
+- NumPY  1.15.4
+- Ubuntu 18.04LTS (I have not tested this program on Windows or Mac)
 
 Requires a config file and weights file that were trained on a face dataset.
 
@@ -37,10 +37,10 @@ https://github.com/sthanhng/yoloface
 Grab the following files from the yoloface repository:
 
 Face weights for yolov3:
-yolov3-wider_16000.weights   (this can be found in the README, look under the Usage section)
+- yolov3-wider_16000.weights   (this can be found in the README, look under the Usage section)
 
 Then get the config file from:
-https://github.com/sthanhng/yoloface/blob/master/cfg/yolov3-face.cfg
+- https://github.com/sthanhng/yoloface/blob/master/cfg/yolov3-face.cfg
 
 
 
