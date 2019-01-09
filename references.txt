@@ -1,10 +1,5 @@
 # references
 
-# originally was going to use this as a reference to make the project but I decided to go in a slightly different direction
-https://web.stanford.edu/class/cs231m/projects/final-report-cao-liu.pdf
-
-
-
 # great reference for opencv haar cascade face detection
 https://realpython.com/face-recognition-with-python/
 
@@ -42,4 +37,5 @@ Face weights for yolov3:
 yolov3-wider_16000.weights   (this can be found in the README, look under the Usage section)
 
 Then get the config file from:
+
 https://github.com/sthanhng/yoloface/blob/master/cfg/yolov3-face.cfg

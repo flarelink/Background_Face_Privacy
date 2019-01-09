@@ -1,7 +1,8 @@
 ##############################################################################
-# face_detect.py - basic face detection which will further be developed to 
-#                  apply an effect over people's faces so that their privacy
-#                  is preserved
+# face_detect.py - Face detection using either haar cascades method or YOLOv3
+#                  depending on user input. Once faces are detected a 
+#                  Gaussian blur is applied to their face so that their
+#                  privacy is preserved.
 #
 # Copyright (C) 2019   Humza Syed
 #
@@ -57,11 +58,11 @@ def haar_face_detection(imgsPath, xmlPath, scaling, size):
                 flags = cv2.CASCADE_SCALE_IMAGE
             )
 
-        #print('Found {0} faces!'.format(len(faces)))
-
         # draw rectangles around faces
         for (x, y, w, h) in faces:
-            cv2.rectangle(image, (x,y), (x+w,y+h), (0,255,0), 2)
+            # draw the bounding box - commented out because I don't want a green box 
+            # around the faces, but left here if the user wants to add this in
+            #cv2.rectangle(image, (x,y), (x+w,y+h), (0,255,0), 2)
 
             # apply gaussian blur on faces
             face = image[y:y+h, x:x+w]
@@ -79,6 +80,7 @@ def haar_face_detection(imgsPath, xmlPath, scaling, size):
         #cv2.waitKey(0)
         cv2.destroyAllWindows()
         
+        print('Image {} was completed!'.format(counter))
         counter += 1
 
     print('Processed all {} images! :D'.format(counter))
@@ -122,10 +124,7 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
         with open(classes_file, 'r') as f:
             classes = [line.strip() for line in f.readlines()]
 
-        # generate different color bounding boxes for different classes
-        #colors_list = np.random.uniform(0, 255, size=(len(classes), 3))
-
-        # temporarily commenting out colors_list above since we just have 1 class which is a face
+        # we just have 1 class which is a face
         colors_list = [(0, 255, 0)]
 
         # read pre-trained model and config file to create network
@@ -178,7 +177,8 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
             w = max(0, round(box[2]))
             h = max(0, round(box[3]))
 
-            # draw the bounding box
+            # draw the bounding box - commented out because I don't want a green box 
+            # around the faces, but left here if the user wants to add this in
             #draw_bounding_box(image, classes, class_ids[ind], colors_list, x, y, w, h)
 
             # draw the blurred bounding box
@@ -278,8 +278,8 @@ def create_parser():
             raise argparse.ArgumentTypeError('Boolean value expected.')
 
     # determine if user wants to use haar classifier or yolo classifier
-    parser.add_argument('-d', '--detect', type=int, default=0,
-            help='Specifies if using haar detection or yolo detection, Options: 0=Haar, 1=YOLO; default=0')
+    parser.add_argument('-d', '--detect', type=int, default=1,
+            help='Specifies if using haar detection or yolo detection where yolo is more accurate, Options: 0=Haar, 1=YOLO; default=1')
 
     # arguments to locate XML file and image directory
     parser.add_argument('-u', '--username', type=str, default='test',
@@ -329,12 +329,9 @@ def main():
         xmlPath = os.path.join(os.getcwd(), args.xml_file)
     else:
         xmlPath = os.path.join(os.path.sep, 'home', args.username, 'opencv', 'data', 'haarcascades', args.xml_file)
-        
-    #print(xmlPath)
 
     # join input image path
     imgsPath = os.path.join(os.getcwd(), args.img_dir_path)
-    #print(imgsPath)
 
     # check which detection method we're using and creat folder for it if it doesn't exist already
     # then run face detection
