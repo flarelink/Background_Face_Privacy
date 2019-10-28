@@ -11,11 +11,11 @@ By default the algorithm will use the YOLOv3 algorithm to detect faces and apply
 
 An example input image can be seen below:
 
-![Input Image](images/test.jpeg)
+![Input Image](images/kyoto_resized.jpg)
 
 The output of the image can be seen here:
 
-![Output Image](out_images_yolo/test_output.png)
+![Output Image](out_images_yolo/kyoto_resized_output.png)
 
 To run type the following:
 
