@@ -7,7 +7,17 @@ Usage:
 
 python3 face_detect.py -i [input_images_directory]
 
-By default the algorithm will use the YOLOv3 algorithm to detect faces and apply a blur onto them. To use the haar cascades version, which is less accurate but faster run:
+By default the algorithm will use the YOLOv3 algorithm to detect faces and apply a blur onto them. To use the haar cascades version, which is less accurate but faster.
+
+An example input image can be seen below:
+
+![Input Image](images/test.jpeg)
+
+The output of the image can be seen here:
+
+![Output Image](out_images_yolo/test_output.png)
+
+To run type the following:
 
 python3 face_detect.py -i [input_image_directory] -d 0
 

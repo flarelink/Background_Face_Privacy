@@ -339,13 +339,16 @@ def main():
     if(args.detect == 0):
         if(os.path.exists(os.path.join(os.getcwd(), 'out_images_haar')) == False):
             os.mkdir('out_images_haar')
+        print('Haar face detection commencing')
         haar_face_detection(imgsPath, xmlPath, args.scaling, args.size)
 
     # YOLO detection
     elif(args.detect == 1):
         if(os.path.exists(os.path.join(os.getcwd(), 'out_images_yolo')) == False):
             os.mkdir('out_images_yolo')
+        print('YOLO face detection commencing')
         yolo_face_detection(imgsPath, args.yolo_path, args.weights, args.classes)
+
     else:
         return IOError("Invalid input, please enter a valid input. Check the program's help command for additional details. (face_detect.py -h)") 
 
