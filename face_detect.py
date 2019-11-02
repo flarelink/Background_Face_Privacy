@@ -14,12 +14,13 @@ import numpy as np
 import argparse
 import os
 
-
 """
 ##############################################################################
 # Haar Face detection
 ##############################################################################
 """
+
+
 def haar_face_detection(imgsPath, xmlPath, scaling, size):
     """
     Detects faces in images and draws a bounding box around the faces using haar cascading method
@@ -38,7 +39,7 @@ def haar_face_detection(imgsPath, xmlPath, scaling, size):
     counter = 0
 
     for image_file in (os.listdir(imgsPath)):
-        
+
         # image path
         image_path = os.path.join(imgsPath, image_file)
 
@@ -51,35 +52,35 @@ def haar_face_detection(imgsPath, xmlPath, scaling, size):
 
         # detect faces
         faces = face_classifier.detectMultiScale(
-                gray_image,
-                scaleFactor = scaling,
-                minNeighbors = 10,
-                minSize = (size, size),
-                flags = cv2.CASCADE_SCALE_IMAGE
-            )
+            gray_image,
+            scaleFactor=scaling,
+            minNeighbors=10,
+            minSize=(size, size),
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
 
         # draw rectangles around faces
         for (x, y, w, h) in faces:
             # draw the bounding box - commented out because I don't want a green box 
             # around the faces, but left here if the user wants to add this in
-            #cv2.rectangle(image, (x,y), (x+w,y+h), (0,255,0), 2)
+            # cv2.rectangle(image, (x,y), (x+w,y+h), (0,255,0), 2)
 
             # apply gaussian blur on faces
-            face = image[y:y+h, x:x+w]
+            face = image[y:y + h, x:x + w]
             face = cv2.GaussianBlur(face, (23, 23), 30)
 
             # put blurred face on new image
-            image[y:y+face.shape[0], x:x+face.shape[1]] = face
+            image[y:y + face.shape[0], x:x + face.shape[1]] = face
 
-        #cv2.imshow('Faces found', image)
+        # cv2.imshow('Faces found', image)
 
         # strip file extension of original image so we can write similar output image
         # i.e.) people.png --> people_output.png
         image_file = os.path.splitext(image_file)[0]
         cv2.imwrite(os.path.join(os.getcwd(), 'out_images_haar', (image_file + '_output.png')), image)
-        #cv2.waitKey(0)
+        # cv2.waitKey(0)
         cv2.destroyAllWindows()
-        
+
         print('Image {} was completed!'.format(counter))
         counter += 1
 
@@ -91,6 +92,8 @@ def haar_face_detection(imgsPath, xmlPath, scaling, size):
 # YOLOv3 Face detection
 ##############################################################################
 """
+
+
 def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
     """
     Detects faces in images and draws a bounding box around the faces using yolo method
@@ -108,7 +111,7 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
     counter = 0
 
     for image_file in (os.listdir(imgsPath)):
-        
+
         # image path
         image_path = os.path.join(imgsPath, image_file)
 
@@ -117,7 +120,7 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
 
         # get width and height
         height = image.shape[0]
-        width  = image.shape[1]
+        width = image.shape[1]
         scale = 0.00392
 
         # get class names
@@ -144,7 +147,7 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
         class_ids = []
         confidences = []
         boxes = []
-        conf_threshold = 0.35 #0.5
+        conf_threshold = 0.35  # 0.5
         nms_threshold = 0.4
 
         # get confidences, bounding box params, class_ids for each detection
@@ -154,13 +157,13 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
                 scores = detection[5:]
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
-                if(confidence > 0.35):#0.5):
+                if (confidence > 0.35):  # 0.5):
                     center_x = int(detection[0] * width)
                     center_y = int(detection[1] * height)
                     w = int(detection[2] * width)
                     h = int(detection[3] * height)
-                    x = center_x - w/2
-                    y = center_y - h/2
+                    x = center_x - w / 2
+                    y = center_y - h / 2
                     class_ids.append(class_id)
                     confidences.append(float(confidence))
                     boxes.append([x, y, w, h])
@@ -179,7 +182,7 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
 
             # draw the bounding box - commented out because I don't want a green box 
             # around the faces, but left here if the user wants to add this in
-            #draw_bounding_box(image, classes, class_ids[ind], colors_list, x, y, w, h)
+            # draw_bounding_box(image, classes, class_ids[ind], colors_list, x, y, w, h)
 
             # draw the blurred bounding box
             blur_detected_object(image, x, y, w, h)
@@ -189,7 +192,7 @@ def yolo_face_detection(imgsPath, yolo_path, weights_file, classes_file):
         image_file = os.path.splitext(image_file)[0]
         cv2.imwrite(os.path.join(os.getcwd(), 'out_images_yolo', (image_file + '_output.png')), image)
         cv2.destroyAllWindows()
-    
+
         print('Image {} was completed!'.format(counter))
         counter += 1
 
@@ -228,10 +231,10 @@ def draw_bounding_box(image, classes, class_id, colors_list, x, y, w, h):
     # get label and color for class
     label = str(classes[class_id])
     color = colors_list[class_id]
-    
+
     # draw bounding box with text over it
-    cv2.rectangle(image, (x,y), ((x+w), (y+h)), color, 2)
-    cv2.putText(image, label, (x-10, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+    cv2.rectangle(image, (x, y), ((x + w), (y + h)), color, 2)
+    cv2.putText(image, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
 def blur_detected_object(image, x, y, w, h):
@@ -245,28 +248,39 @@ def blur_detected_object(image, x, y, w, h):
 
     """
     # apply gaussian blur on faces
-    face = image[y:y+h, x:x+w]
+    face = image[y:y + h, x:x + w]
     face = cv2.GaussianBlur(face, (23, 23), 30)
 
     # put blurred face on new image
     face_y = face.shape[0]
     face_x = face.shape[1]
 
-    image[y:y+face_y, x:x+face_x] = face
+    image[y:y + face_y, x:x + face_x] = face
+
 
 """
 ##############################################################################
 # Parser
 ##############################################################################
 """
+
+
 def create_parser():
     """
     Function to take in input arguments from the user
 
     return: parser inputs
     """
+
+    class NiceFormatter(argparse.ArgumentDefaultsHelpFormatter,
+                        argparse.RawDescriptionHelpFormatter):
+        """Nice-looking formatter for argparse parsers. Prints defaults in help
+        messages and allows for newlines in description/epilog."""
+        pass
+
     parser = argparse.ArgumentParser(
-        description='Background_Face_Privacy arguments.')
+        description='Background_Face_Privacy arguments.',
+        formatter_class=NiceFormatter)
 
     # function to allow parsing of true/false boolean
     def str2bool(v):
@@ -279,31 +293,34 @@ def create_parser():
 
     # determine if user wants to use haar classifier or yolo classifier
     parser.add_argument('-d', '--detect', type=int, default=1,
-            help='Specifies if using haar detection or yolo detection where yolo is more accurate, Options: 0=Haar, 1=YOLO; default=1')
+                        help='Specifies if using haar detection or yolo detection where yolo is more accurate, '
+                             'Options: 0=Haar, 1=YOLO')
 
     # arguments to locate XML file and image directory
     parser.add_argument('-u', '--username', type=str, default='test',
-            help='This is the username to help locate your frontal face xml file in opencv for face detection. Usage leads to obtaining the path, for example mine is: /home/flarelink/opencv/data/haarcascades/haarcascade_frontalface_default.xml where flarelink is me the user. Alternatively you can just download the xml in the repository but this way will help you locate any others like if you wanted to do eye detection :) ; default=test')
+                        help='This is the username to help locate your frontal face xml file in opencv for face detection.'
+                             'Usage leads to obtaining the path, for example mine is: '
+                             '/home/flarelink/opencv/data/haarcascades/haarcascade_frontalface_default.xml'
+                             'where flarelink is me the user. Alternatively you can just download the xml in the repository '
+                             'but this way will help you locate any others like if you wanted to do eye detection :)')
     parser.add_argument('-x', '--xml_file', type=str, default='haarcascade_frontalface_default.xml',
-            help='Uses xml file specified; default=haarcascade_frontalface_default.xml')
-    #parser.add_argument('--img_path', type=str, default='test.jpeg',
-            #help='Uses path of image; default=test.jpeg')
+                        help='Uses xml file specified')
     parser.add_argument('-i', '--img_dir_path', type=str, default='images',
-            help='Uses the provided directory name as the target directory where all input images are; default=images')
-    
+                        help='Uses the provided directory name as the target directory where all input images are')
+
     # arguments for haar cascade face detection parameters
     parser.add_argument('--scaling', type=float, default=1.1,
-            help='Defines scaling that compensates for larger/smaller faces (similar to a tolerance); default=1.1')
+                        help='Defines scaling that compensates for larger/smaller faces (similar to a tolerance)')
     parser.add_argument('--size', type=int, default=10,
-            help='Defines minimum sizes of faces; default=10')
+                        help='Defines minimum sizes of faces')
 
     # arguments for yolo face detection parameters
     parser.add_argument('-y', '--yolo_path', type=str, default='yolov3-face.cfg',
-            help='Uses the provided path to the yolo config file; default=yolov3-face.cfg')
+                        help='Uses the provided path to the yolo config file')
     parser.add_argument('-w', '--weights', type=str, default='yolov3-wider_16000.weights',
-            help='Uses the provided path to the weights file for yolo; default=yolov3-wider_16000.weights')
+                        help='Uses the provided path to the weights file for yolo')
     parser.add_argument('-c', '--classes', type=str, default='yolov3_classes.txt',
-            help='Uses the provided path to the classes text file for yolo; default=yolov3_classes.txt')
+                        help='Uses the provided path to the classes text file for yolo')
 
     args = parser.parse_args()
 
@@ -315,7 +332,9 @@ def create_parser():
 # Main, where all the magic starts~
 ##############################################################################
 """
-def main(): 
+
+
+def main():
     """
     Takes in input image to detect faces and then apply a blur like effect of some kind
     """
@@ -325,7 +344,7 @@ def main():
 
     # obtain path to xml based off username
     # if username left as test then load the xml downloaded from repository
-    if(args.username == 'test'):
+    if (args.username == 'test'):
         xmlPath = os.path.join(os.getcwd(), args.xml_file)
     else:
         xmlPath = os.path.join(os.path.sep, 'home', args.username, 'opencv', 'data', 'haarcascades', args.xml_file)
@@ -336,21 +355,23 @@ def main():
     # check which detection method we're using and creat folder for it if it doesn't exist already
     # then run face detection
     # Haar cascade detection
-    if(args.detect == 0):
-        if(os.path.exists(os.path.join(os.getcwd(), 'out_images_haar')) == False):
+    if (args.detect == 0):
+        if (os.path.exists(os.path.join(os.getcwd(), 'out_images_haar')) == False):
             os.mkdir('out_images_haar')
         print('Haar face detection commencing')
         haar_face_detection(imgsPath, xmlPath, args.scaling, args.size)
 
     # YOLO detection
-    elif(args.detect == 1):
-        if(os.path.exists(os.path.join(os.getcwd(), 'out_images_yolo')) == False):
+    elif (args.detect == 1):
+        if (os.path.exists(os.path.join(os.getcwd(), 'out_images_yolo')) == False):
             os.mkdir('out_images_yolo')
         print('YOLO face detection commencing')
         yolo_face_detection(imgsPath, args.yolo_path, args.weights, args.classes)
 
     else:
-        return IOError("Invalid input, please enter a valid input. Check the program's help command for additional details. (face_detect.py -h)") 
+        return IOError(
+            "Invalid input, please enter a valid input. Check the program's help command for additional details. (face_detect.py -h)")
 
-if __name__== '__main__':
+
+if __name__ == '__main__':
     main()
