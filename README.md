@@ -29,16 +29,6 @@ python3 face_detect.py -h
 Requirements:
 --------------
 
-- Python 3.X
-- OpenCV
-- NumPY
-
-I'm using the following:
-- Python 3.7.1
-- OpenCV 3.4.5
-- NumPY  1.15.4
-- Ubuntu 18.04LTS (I have not tested this program on Windows or Mac)
-
 Requires a config file and weights file that were trained on a face dataset.
 
 These can be downloaded from:
@@ -53,5 +43,10 @@ Then get the config file from:
 - https://github.com/sthanhng/yoloface/blob/master/cfg/yolov3-face.cfg
 
 
+Python Version and OS used:
+--------------
+
+- Python 3.7.4
+- Ubuntu 18.04LTS
 
 Please let me know if you have any questions! :)
