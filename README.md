@@ -1,6 +1,6 @@
 # Background_Face_Privacy 
 
-Project to detect faces in the background of photos and blur the faces to allow for privacy of individuals.
+Project to detect faces in the background of photos and blur the faces to allow for privacy of individuals. Two methods are shown, namely the YOLOv3 deep neural network and the Haar Cascades classifier. Both approaches are pretrained on images of faces and this program illustrates a comparison of how they perform to new images. 
 
 Usage:
 -------------
