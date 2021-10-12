@@ -9,4 +9,4 @@ numpy == 1.17.4
 
 # haar_detect.py: 11
 # yolo_detect.py: 11
-opencv_python == 4.1.2.30
+opencv_python == 4.2.0.32
