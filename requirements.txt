@@ -5,7 +5,7 @@
 imutils == 0.5.3
 
 # yolo_detect.py: 12
-numpy == 1.17.4
+numpy == 1.22.0
 
 # haar_detect.py: 11
 # yolo_detect.py: 11
